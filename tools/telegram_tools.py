@@ -8,6 +8,8 @@ dotenv.load_dotenv()
 
 TELE_APP_ID = os.getenv('TELE_APP_ID', None)
 TELE_HASH = os.getenv('TELE_HASH', None)
+LIMIT_MESSAGES = 50 # Number of messages to be read/fetched
+LIMIT_DIALOGS = 50 # Number of active conversations in telegram
 
 if not TELE_APP_ID or not TELE_HASH:
     print("Unable to retrieve the telegram hash or app id.")
