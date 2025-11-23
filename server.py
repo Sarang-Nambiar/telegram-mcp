@@ -5,6 +5,7 @@ from tools.telegram_tools import (
     ensure_client_connection,
     client,
     find_id_from_name,
+    filter_dialogs,
     LIMIT_MESSAGES
 )
 from typing import List, Dict, Union
@@ -23,14 +24,20 @@ import logging
 mcp = FastMCP("telegram-mcp")
 
 # Read only resources
-@mcp.resource("resource://telegram/user/conversations")
+@mcp.resource(
+        uri="resource://telegram/user/conversations",
+        name="OpenConversations",
+        description="List of all open Telegram conversations. Use this to find the correct 'username' when sending messages to contacts by name.",
+        mime_type="application/json"
+        )
 async def list_all_conversations() -> TotalList:
     """
     Lists all the open conversations had by the client.
     """
     await ensure_client_connection()
     dialogs = await client.get_dialogs(limit=50) # Limiting to 50 dialogs to preserve context window
-    return dialogs
+    f_dialogs = filter_dialogs(dialogs)
+    return f_dialogs
 
 @mcp.tool()
 async def send_message(name: str, message: str) -> str:

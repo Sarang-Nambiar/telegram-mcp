@@ -1,9 +1,10 @@
 import os
 import sys
+from typing import Any, Dict, List
 from telethon import TelegramClient
 import dotenv
 import asyncio
-
+from telethon.types import Dialog
 dotenv.load_dotenv()
 
 TELE_APP_ID = os.getenv('TELE_APP_ID', None)
@@ -43,7 +44,26 @@ async def find_id_from_name(name: str) -> int|None:
             return dialog.id
     return None
 
-async def cleanup():
+def filter_dialogs(dialogs: List[Dialog]) -> List[Dict[str, Any]]:
+    """
+    Filter out unnecessary properties from the Dialog class
+    """
+    f_dialogs = []
+    for dialog in dialogs:
+        last_message = dialog.message
+        f_dialog = {
+            "username": dialog.title, # username or chatname
+            "last_message": last_message.message,
+            "last_message_date": last_message.date, 
+            "chat_id": dialog.id,
+            "is_user": dialog.is_user,
+            "is_group": dialog.is_group,
+            "is_channel": dialog.is_channel,
+        }
+        f_dialogs.append(f_dialog)
+    return f_dialogs
+
+async def cleanup() -> None:
     """
     Disconnects the client when the MCP server shuts down
     """
