@@ -12,7 +12,6 @@ from typing import List, Dict, Union
 import logging
 
 # TODO:
-# Test out the resource feature in MCP
 # List out all the names and then find the right person
 # Make a prompt template to claude which would only give suggestions based on the tools we have and it should be able to send telegram messages with a compatible markdown syntax. https://docs.telethon.dev/en/v2/concepts/messages.html 
 # Reading messages, maybe start with giving info on top k messages. 
@@ -24,12 +23,7 @@ import logging
 mcp = FastMCP("telegram-mcp")
 
 # Read only resources
-@mcp.resource(
-        uri="resource://telegram/user/conversations",
-        name="OpenConversations",
-        description="List of all open Telegram conversations. Use this to find the correct 'username' when sending messages to contacts by name.",
-        mime_type="application/json"
-        )
+@mcp.tool()
 async def list_all_conversations() -> TotalList:
     """
     Lists all the open conversations had by the client.
@@ -94,3 +88,29 @@ async def read_message(name: str, latest_k: int=1) -> Union[str, List[Dict[str, 
         logging.error("Something went wrong during reading:")
         traceback.print_exc()
         return f"Failed to send message due to error: {err_msg}"
+
+@mcp.prompt()
+def send_message_prompt(telegram_username: str, message: str) -> str:
+    """
+    Prompt for sending a message on telegram.
+    """
+    return f"""
+    Try finding a user with a Telegram username similar to {telegram_username} from the list of open conversations. 
+    Once you find similar username(s) from the list, confirm with the user on whether the one(s) picked are the correct ones.
+
+    From the confirmed username, send the message {message} over to the user.
+    
+    When sending the message, Use the below formatting when required:
+    *italic* and _italic_
+    **bold** and __bold__
+    # headings are underlined
+    ~~strikethrough~~
+    [inline URL](https://www.example.com/)
+    [inline mention](tg://user?id=ab1234cd6789)
+    custom emoji image with ![👍](tg://emoji?id=1234567890)
+    `inline code`
+    ```python
+    multiline pre-formatted
+    block with optional language
+    ``` 
+    """
