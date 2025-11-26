@@ -183,7 +183,7 @@ def read_message_prompt(telegram_username: str, top_k: int) -> str:
     """
 
 @mcp.prompt()
-def count_unread_message_prompt(top_k: int) -> str:
+def get_unread_count_prompt(top_k: int) -> str:
     """
     Prompt for sending a message on telegram.
     """
