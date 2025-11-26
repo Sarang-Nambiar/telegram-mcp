@@ -194,4 +194,6 @@ def count_unread_message_prompt(top_k: int) -> str:
     The output from the execution of the function/tool would be a HashMap with the key being the username and the value being the count of the unread messages in that particular chat with that user. 
 
     Calculate the total number of unread messages for the user and list the count of the unread messages from the different usernames with the help of bullet points.
+    
+    If there are any unread messages, suggest further operations like reading those messages or sending a reply to the message.
     """
