@@ -98,7 +98,7 @@ After logging in, add this repository as a custom MCP server in the MCP client a
   }
 }
 ```
-The guide to finding the location of claude_desktop_config.json can be found [here](https://modelcontextprotocol.io/docs/develop/connect-local-servers).
+The guide to finding the location of `claude_desktop_config.json` can be found [here](https://modelcontextprotocol.io/docs/develop/connect-local-servers).
 
 ## Configuration
 
