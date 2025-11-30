@@ -1,5 +1,7 @@
+import logging
 import os
 import sys
+import traceback
 from typing import Any, Dict, List
 from telethon import TelegramClient
 import dotenv
@@ -33,6 +35,38 @@ async def ensure_client_connection() -> None:
         if not _client_started:
             await client.start()
             _client_started = True
+
+
+async def find_msg_ids_from_msg(convo_id: int, message_texts: List[str]) -> List[int] | None:
+    """
+    Finds the message ids of the plain text messages
+
+    convo_id: The open conversation from which the message id should be found.
+    message_texts: Plain text messages from which the ids are to be found
+    """
+    await ensure_client_connection()
+    res = []
+
+    try:
+        messages = await client.get_messages(convo_id, limit=LIMIT_MESSAGES)
+        
+        for text in message_texts:
+            for msg in messages:
+                if msg.message == text:
+                    logging.info(f"Found the message '{text}'. Retrieving the id.")
+                    res.append(msg.id)
+                    break
+            else:
+                # Message could not be found, skip it
+                logging.warning(f"Could not find '{text}' in the chat. Skipping.")
+
+        return res
+    
+    except Exception as e:
+        traceback.print_exc()
+        logging.error("Something went wrong when trying to fetch the ids of the messages.")
+        return None
+        
 
 async def find_id_from_name(name: str) -> int|None:
     """

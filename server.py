@@ -1,3 +1,4 @@
+from xmlrpc.client import boolean
 from mcp.server.fastmcp import FastMCP
 from telethon.hints import TotalList
 import traceback
@@ -7,15 +8,13 @@ from tools.telegram_tools import (
     find_id_from_name,
     filter_dialogs,
     LIMIT_MESSAGES,
-    LIMIT_DIALOGS
+    LIMIT_DIALOGS,
+    find_msg_ids_from_msg
 )
 from typing import List, Dict, Union
 import logging
 
 # TODO:
-# List out all the names and then find the right person
-# Reading messages, maybe start with giving info on top k messages. 
-# Then move on to reading unread messages if any. If none, then LLM should say that
 # Deletion of chats, messages, groups.
 # Deletion of specific messages, "maybe delete the 5th latest message".
 # Edit the latest message or any message to something else
@@ -112,7 +111,7 @@ async def get_unread_count(top_k:int) -> Union[str, Dict[str, int]]:
                 logging.info(f"Found {top_k} dialogs with unread messages.")
                 break
             
-            if dialog.is_user and dialog.unread_count != 0:
+            if dialog.is_user and dialog.unread_cofunt != 0:
                 logging.info(f'User {dialog.title} found with {dialog.unread_count}')
                 counts[dialog.title] = dialog.unread_count
                 i += 1
@@ -124,6 +123,35 @@ async def get_unread_count(top_k:int) -> Union[str, Dict[str, int]]:
         logging.error("Something went wrong when finding unread messages:")
         traceback.print_exc()
         return f"Failed to send message due to error: {err_msg}"
+
+@mcp.tool()
+async def delete_message(name: str, messages: List[str], remove_for_everyone: boolean=False) -> str:
+    """
+    Function to delete a message from the open conversation with 'name'
+
+    name: The username of the person to delete the message in.
+    messages: Messages to be deleted.
+    remove_for_everyone: Whether the message should be deleted for the user alone or for everyone in the chat. 
+    """
+    await ensure_client_connection()
+
+    try:
+        dialog_id = await find_id_from_name(name)
+        message_ids = await find_msg_ids_from_msg(dialog_id, messages)
+        if not message_ids:
+            logging.error("Something went wrong when collecting the ids of the messages")
+            return f"Something went wrong when collecting the ids of the messages"
+
+        _ = await client.delete_messages(dialog_id, message_ids=message_ids, revoke=remove_for_everyone)
+
+        logging.info(f"Successfully deleted messages in the chat with {name}.")
+        return f"Successfully deleted messages in the chat with {name}."
+
+    except Exception as e:
+        traceback.print_exc()
+        logging.error(f"Something went wrong when deleting the messages in the chat with {name}. Please try again.")
+        return f"Something went wrong when deleting the messages in the chat with {name}. Please try again."
+
 
 @mcp.prompt()
 def send_message_prompt(telegram_username: str, message: str) -> str:
