@@ -16,7 +16,6 @@ import logging
 
 # TODO:
 # Deletion of chats, messages, groups.
-# Deletion of specific messages, "maybe delete the 5th latest message".
 # Edit the latest message or any message to something else
 
 mcp = FastMCP("telegram-mcp")
